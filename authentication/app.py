@@ -12,7 +12,7 @@ class AppRouteExtractor(Extractor):
     def extract(self, module: Any) -> list[RouterMetadata]:
         routers = []
 
-        if not hasattr(module, "router"):
+        if not hasattr(module, "routable"):
             return routers
 
         routable = getattr(module, "routable")
@@ -39,17 +39,13 @@ def create_app():
             "message": "Authentication Service is running"
         }
 
-    @app.get("/health")
-    async def health_check():
-        return {
-            "status": "healthy"
-        }
-
     extractor = AppRouteExtractor()
     file_router = FileRouter(
         base_path="./api",
         extractor=extractor
     )
+
+    print(file_router.stats)
 
     app.include_router(file_router)
 
