@@ -13,6 +13,7 @@ dependencies = [
     "alembic (>=1.17.1,<2.0.0)",
     "sqlmodel (>=0.0.27,<0.0.28)",
     "slowapi[redis] (>=0.1.9,<0.2.0)",
+    "arrow (>=1.4.0,<2.0.0)",
 ]
 
 
