@@ -4,6 +4,7 @@ from fastapi import FastAPI
 from fastapi.responses import JSONResponse
 
 from .core import settings
+from .core.middlewares import setup_rate_limiting, setup_logging_middleware
 from .core.routing import FileRouter, Extractor, RouterMetadata, AppRouter
 
 
@@ -44,7 +45,9 @@ def create_app():
         extractor=extractor
     )
 
-    print(file_router.stats)
+    # Middlewares
+    setup_rate_limiting(app)
+    setup_logging_middleware(app)
 
     app.include_router(file_router)
 
