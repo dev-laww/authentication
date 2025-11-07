@@ -110,6 +110,7 @@ Example usage patterns:
 """
 
 import dataclasses
+import functools
 import inspect
 from enum import Enum
 from typing import (
@@ -329,19 +330,17 @@ class AppRouter(AppObject):
             return method_args
 
         if is_async:
+            @functools.wraps(method)
             async def endpoint_wrapper(**kwargs):
                 method_args = prepare_method_arguments(kwargs)
                 return await method(**method_args)
         else:
+            @functools.wraps(method)
             def endpoint_wrapper(**kwargs):
                 method_args = prepare_method_arguments(kwargs)
                 return method(**method_args)
 
         endpoint_wrapper.__signature__ = new_signature  # type: ignore
-        endpoint_wrapper.__name__ = method.__name__
-        endpoint_wrapper.__doc__ = method.__doc__
-        endpoint_wrapper.__module__ = method.__module__  # type: ignore
-        endpoint_wrapper.__qualname__ = method.__qualname__
-        endpoint_wrapper.__annotations__ = method.__annotations__  # type: ignore
+        endpoint_wrapper.__wrapped__ = method
 
         return endpoint_wrapper
