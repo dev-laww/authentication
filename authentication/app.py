@@ -1,10 +1,13 @@
+from contextlib import asynccontextmanager
 from typing import Any
 
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
 
 from .core import settings
+from .core.database import db_manager
 from .core.exceptions import setup_exception_handlers
+from .core.logging import logger
 from .core.middlewares import setup_rate_limiting, setup_logging_middleware
 from .core.routing import FileRouter, Extractor, RouterMetadata, AppRouter
 
@@ -28,10 +31,35 @@ class AppRouteExtractor(Extractor):
         return routers
 
 
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup actions
+    logger.info("Starting up the application")
+    logger.info(f"Environment: {settings.environment.value}")
+    logger.info(f"Debug mode: {'enabled' if settings.debug else 'disabled'}")
+
+    db_manager.initialize()
+
+    yield
+
+    logger.info("Shutting down the application")
+    await db_manager.dispose()
+
+    # Shutdown actions
+
+
 def create_app():
+    should_add_docs = settings.is_development and settings.enable_api_docs
+
     app = FastAPI(
         title=settings.app_name,
-        default_response_class=JSONResponse
+        description=settings.app_description,
+        version=settings.app_version,
+        debug=settings.debug,
+        default_response_class=JSONResponse,
+        docs_url=settings.docs_url if should_add_docs else None,
+        redoc_url=settings.redoc_url if should_add_docs else None,
+        lifespan=lifespan
     )
 
     @app.get("/")
