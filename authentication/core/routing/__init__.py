@@ -2,7 +2,7 @@ from .app_router import AppRouter
 from .decorators import *
 from .dto import RouterMetadata, RouteMetadata
 from .extractor import *
-from .file_router import FileRouter
+from .routers import FileRouter, AppRouter, VersionedRouter, VersionedRoute
 
 __all__ = [
     "RouterMetadata",
@@ -12,6 +12,8 @@ __all__ = [
     "MultiRouterExtractor",
     "FileRouter",
     "AppRouter",
+    "VersionedRoute",
+    "VersionedRouter",
     "route",
     "get",
     "post",

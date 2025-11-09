@@ -63,11 +63,9 @@ from pathlib import Path
 from typing import Any, Optional
 
 from fastapi import APIRouter
-from fastapi.routing import APIRoute
 
-from .dto import RouterMetadata
-from .extractor import Extractor, DefaultExtractor
-from ..logging import get_logger
+from ..extractor import Extractor, DefaultExtractor
+from ...logging import get_logger
 
 logger = get_logger(__name__)
 
@@ -94,25 +92,15 @@ def _resolve_base_path(base_path: str, relative_to: Optional[str] = None) -> Pat
         return (base / path).resolve()
 
     try:
-        frame = inspect.currentframe()
-        if frame:
-            # Skip frames within this module
-            while frame:
-                frame_info = inspect.getframeinfo(frame)
-                frame_file = frame_info.filename
-
-                # Skip this file and any __init__.py files in the routing module
-                if not frame_file.endswith(('file_router.py', 'routing/__init__.py')):
-                    caller_path = Path(frame_file).parent.resolve()
-                    resolved = (caller_path / path).resolve()
-                    return resolved
-
-                frame = frame.f_back
+        stack = inspect.stack()
+        if len(stack) > 2:
+            caller_path = Path(stack[2].filename).parent.resolve()
+            return (caller_path / path).resolve()
     except Exception as e:
-        raise e
+        logger.warning(f"Could not auto-detect caller location: {e}. Using current working directory.")
 
+    # Fallback to current working directory
     resolved = path.resolve()
-
     return resolved
 
 
@@ -266,7 +254,8 @@ class FileRouter(APIRouter):
 
                     for router_metadata in extracted_routers:
                         if isinstance(router_metadata.router, APIRouter):
-                            self._register_router(router_metadata)
+                            self.include_router(router_metadata.router)
+
                             module_stats["routers_registered"] += 1
                         else:
                             error_msg = (
@@ -312,45 +301,6 @@ class FileRouter(APIRouter):
             return module_name
         else:
             return file_path.stem
-
-    def _register_router(self, router_metadata: RouterMetadata) -> None:
-        """
-        Register a discovered router by including its routes.
-
-        Args:
-            router_metadata: RouterMetadata containing the router and its metadata
-        """
-        router = router_metadata.router
-
-        # Include all routes from the discovered router into this FileRouter
-        for route in router.routes:
-            if isinstance(route, APIRoute):
-                # Merge tags if both routers have them
-                route_tags = list(route.tags) if route.tags else []
-                if router.tags:
-                    route_tags = list(set(route_tags + list(router.tags)))
-
-                # Add the route to this FileRouter
-                self.add_api_route(
-                    path=route.path,
-                    endpoint=route.endpoint,
-                    methods=route.methods,
-                    tags=route_tags or None,
-                    summary=route.summary,
-                    description=route.description,
-                    response_model=route.response_model,
-                    status_code=route.status_code,
-                    responses=route.responses,
-                    deprecated=route.deprecated,
-                    operation_id=route.operation_id,
-                    response_model_include=route.response_model_include,
-                    response_model_exclude=route.response_model_exclude,
-                    response_model_by_alias=route.response_model_by_alias,
-                    response_model_exclude_unset=route.response_model_exclude_unset,
-                    response_model_exclude_defaults=route.response_model_exclude_defaults,
-                    response_model_exclude_none=route.response_model_exclude_none,
-                    include_in_schema=route.include_in_schema,
-                )
 
     @property
     def stats(self) -> dict[str, Any]:
