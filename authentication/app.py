@@ -73,7 +73,7 @@ def create_app():
     extractor = AppRouteExtractor()
     file_router = FileRouter(
         base_path="./api",
-        # extractor=extractor
+        extractor=extractor
     )
 
     app.include_router(file_router)
