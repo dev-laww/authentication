@@ -34,3 +34,4 @@ class Constants:
     )
 
     REQUESTED_VERSION_SCOPE_KEY = "requested_version"
+    LATEST_VERSION_SCOPE_KEY = "latest_version"
