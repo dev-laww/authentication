@@ -261,5 +261,6 @@ __all__ = [
     "ExternalServiceError",
     "ConflictError",
     "RateLimitError",
+    "VersionNotSupportedError",
     "setup_exception_handlers"
 ]
