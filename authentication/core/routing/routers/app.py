@@ -111,7 +111,6 @@ Example usage patterns:
 
 import dataclasses
 import functools
-import inspect
 from enum import Enum
 from typing import (
     Optional,
@@ -122,21 +121,17 @@ from typing import (
     Union,
     Sequence,
     Callable,
-    Tuple,
     get_type_hints,
 )
 
 from fastapi import APIRouter, params
 from fastapi.datastructures import Default
-from fastapi.routing import APIRoute
-from semver import Version
 from starlette.responses import JSONResponse
 from starlette.responses import Response
-from starlette.routing import BaseRoute, Match
-from starlette.types import ASGIApp, Lifespan, Scope, Receive, Send
+from starlette.routing import BaseRoute
+from starlette.types import ASGIApp, Lifespan
 
-from .dto import VersionMetadata
-from ..exceptions import VersionNotSupportedError
+from .version import VersionedRoute, VersionedRouter
 
 try:
     from typing_inspect import is_classvar
@@ -148,63 +143,11 @@ except ImportError:
     def is_classvar(tp):
         return hasattr(tp, '__origin__') and tp.__origin__ is _ClassVar
 
-from .dto import RouteMetadata
-from ..base import AppObject
-from ..constants import Constants
+from ..dto import RouteMetadata
+from ...base import AppObject
+from ...constants import Constants
 
-
-class AppRoute(APIRoute):
-    """
-    Custom APIRoute to potentially extend in the future.
-    Currently serves as a placeholder for custom route behavior.
-    """
-
-    @property
-    def version_metadata(self) -> Optional[VersionMetadata]:
-        endpoint = self.endpoint
-
-        return getattr(endpoint, Constants.VERSION_METADATA_ATTR, None)
-
-    def is_version_matching(self, scope: Scope) -> bool:
-        requested_version = scope.get("requested_version", scope.get("latest_version"))
-        latest_version = scope.get("latest_version")
-
-        # If route has no version metadata, it matches the latest version
-        if self.version_metadata is None:
-            return requested_version == latest_version
-
-        route_version = self.version_metadata.version
-        
-        # Routes without explicit version default to Version(1) in the decorator.
-        # If route version is Version(1) and latest is not Version(1), 
-        # treat it as "match latest version" (route without explicit version).
-        if route_version == Version(1) and latest_version != Version(1):
-            return requested_version == latest_version
-        
-        # If route version equals latest version, it matches when requested version is latest
-        if route_version == latest_version:
-            return requested_version == latest_version
-        
-        # Route has specific version - match if route version equals requested version
-        return route_version == requested_version
-
-    def matches(self, scope: Scope) -> Tuple[Match, Scope]:
-        match, child_scope = super().matches(scope)
-
-        if match == Match.NONE or match == Match.PARTIAL:
-            return match, child_scope
-
-        if self.is_version_matching(scope):
-            return Match.FULL, child_scope
-
-        return Match.PARTIAL, child_scope
-
-    async def handle(self, scope: Scope, receive: Receive, send: Send) -> None:
-        print("Handling request in AppRoute")
-        if not self.is_version_matching(scope):
-            raise VersionNotSupportedError("Invalid API version for this endpoint")
-
-        await super().handle(scope, receive, send)
+import inspect
 
 
 class AppRouter(AppObject):
@@ -239,7 +182,7 @@ class AppRouter(AppObject):
         redirect_slashes: bool = True,
         default: Optional[ASGIApp] = None,
         dependency_overrides_provider: Optional[Any] = None,
-        route_class: Type[AppRoute] = AppRoute,
+        route_class: Type[VersionedRoute] = VersionedRoute,
         on_startup: Optional[Sequence[Callable[[], Any]]] = None,
         on_shutdown: Optional[Sequence[Callable[[], Any]]] = None,
         lifespan: Optional[Lifespan[Any]] = None,
@@ -247,7 +190,7 @@ class AppRouter(AppObject):
         include_in_schema: bool = True,
         **kwargs
     ):
-        self.http_router = APIRouter(
+        self.http_router = VersionedRouter(
             prefix=prefix,
             tags=tags,
             dependencies=dependencies,
@@ -407,7 +350,7 @@ class AppRouter(AppObject):
                 method_args = prepare_method_arguments(kwargs)
                 return method(**method_args)
 
-        endpoint_wrapper.__signature__ = new_signature  # type: ignore
+        endpoint_wrapper.__signature__ = new_signature
         endpoint_wrapper.__wrapped__ = method
 
         return endpoint_wrapper
