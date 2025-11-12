@@ -1,26 +1,25 @@
 import datetime
+from typing import TYPE_CHECKING, Optional
 from uuid import UUID, uuid4
 
-import arrow
 import sqlalchemy as sa
-from sqlmodel import SQLModel, Field
+from sqlmodel import SQLModel, Field, Relationship
 
-from .app import AppObject
+from authentication.core.utils import get_current_utc_datetime
 
-
-def get_current_utc_datetime() -> datetime.datetime:
-    """
-    Get the current UTC datetime with timezone awareness
-    """
-    return arrow.utcnow().datetime
+if TYPE_CHECKING:
+    from .user import User
 
 
-class DatabaseObject(AppObject, SQLModel):
-    """
-    Base database object class
-    """
+class Session(SQLModel, table=True):
+    __tablename__ = "accounts"
 
     id: UUID = Field(default_factory=uuid4, primary_key=True, index=True)
+    user_id: UUID = Field(foreign_key="users.id", index=True)
+    token: str
+    expires_at: datetime.datetime
+    ip_address: Optional[str]
+    user_agent: Optional[str]
     created_at: datetime.datetime = Field(
         default_factory=get_current_utc_datetime,
         sa_column=sa.Column(
@@ -34,7 +33,9 @@ class DatabaseObject(AppObject, SQLModel):
         sa_column=sa.Column(
             sa.DateTime(timezone=True),
             server_default=sa.func.now(),
-            onupdate=get_current_utc_datetime,
+            onupdate=sa.func.now(),
             nullable=False
         )
     )
+
+    user: "User" = Relationship(back_populates="accounts", sa_relationship_kwargs={"lazy": "selectin"})

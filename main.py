@@ -1,4 +1,7 @@
+from sqlmodel import select
+
 from authentication import create_app
+from authentication.models import User
 
 app = create_app()
 
