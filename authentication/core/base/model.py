@@ -1,6 +1,6 @@
 import datetime
 import uuid
-from typing import Literal, Any, Callable
+from typing import Literal, Any, Callable, Optional
 
 import arrow
 from pydantic import BaseModel as PydanticBaseModel, ConfigDict
@@ -22,7 +22,7 @@ class BaseModel(PydanticBaseModel):
         include: IncEx | None = None,
         exclude: IncEx | None = None,
         context: Any | None = None,
-        by_alias: bool | None = None,
+        by_alias: bool | None = True,
         exclude_unset: bool = False,
         exclude_defaults: bool = False,
         exclude_none: bool = True,
@@ -56,7 +56,7 @@ class BaseModel(PydanticBaseModel):
         include: IncEx | None = None,
         exclude: IncEx | None = None,
         context: Any | None = None,
-        by_alias: bool | None = None,
+        by_alias: bool | None = True,
         exclude_unset: bool = False,
         exclude_defaults: bool = False,
         exclude_none: bool = True,
@@ -84,19 +84,29 @@ class BaseModel(PydanticBaseModel):
         )
 
 
-class BaseDBModel(SQLModel, BaseModel):
+class BaseDBModel(SQLModel, BaseModel, table=False):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
-    created_at: datetime.datetime = Field(
-        default_factory=lambda: arrow.utcnow().datetime,
-        sa_column=Column(DateTime(timezone=True)),
-    )
-    updated_at: datetime.datetime = Field(
-        default_factory=lambda: arrow.utcnow().datetime,
-        sa_column=Column(
-            DateTime(timezone=True), onupdate=lambda: arrow.utcnow().datetime
-        ),
-    )
+    created_at: datetime.datetime
+    updated_at: datetime.datetime
+    deleted_at: Optional[datetime.datetime]
 
-    model_config = ConfigDict(
-        alias_generator=to_camel, populate_by_name=True, extra="ignore"
-    )
+    # Workaround on inheriting to add timestamp fields automatically as sqlalchemy does not allow Column being assigned
+    # to more than one model class
+    def __init_subclass__(cls, **kwargs):
+        if cls.__name__ == "BaseDBModel":
+            super().__init_subclass__(**kwargs)
+            return
+
+        cls.created_at = Field(
+            default_factory=lambda: arrow.utcnow().datetime,
+            sa_column=Column(DateTime(timezone=True)),
+        )
+        cls.updated_at = Field(
+            default_factory=lambda: arrow.utcnow().datetime,
+            sa_column=Column(
+                DateTime(timezone=True), onupdate=lambda: arrow.utcnow().datetime
+            ),
+        )
+        cls.deleted_at = Field(default=None, sa_column=Column(DateTime(timezone=True)))
+
+        super().__init_subclass__(**kwargs)
