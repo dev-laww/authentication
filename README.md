@@ -100,10 +100,16 @@ authentication/
    cd authentication
    ```
 
-2. **Install dependencies and pre-commit**
+2. **Install dependencies and pre-commit hooks**
    ```bash
    poetry install
    poetry run pre-commit install
+   poetry run pre-commit install --hook-type pre-push
+   ```
+   
+   Or install all hook types at once:
+   ```bash
+   poetry run pre-commit install --hook-type pre-commit --hook-type pre-merge-commit --hook-type pre-push --hook-type prepare-commit-msg --hook-type commit-msg --hook-type post-commit --hook-type post-merge --hook-type post-checkout --hook-type post-rewrite
    ```
 
 3. **Set up environment variables**
@@ -368,6 +374,34 @@ poetry run ruff check .
 
 # Security check
 poetry run bandit -r authentication/
+```
+
+### Pre-commit Hooks
+
+This project uses pre-commit hooks to ensure code quality before commits and pushes:
+
+- **Pre-commit hooks** (run on every commit):
+  - Trailing whitespace removal
+  - End-of-file fixer
+  - YAML/JSON/TOML validation
+  - Large file detection
+  - Merge conflict detection
+  - Debug statement detection
+  - Line ending normalization
+  - Ruff formatting and linting
+  - Bandit security checks
+
+- **Pre-push hooks** (run before pushing to remote):
+  - Pytest test suite with coverage (requires 80% coverage minimum)
+
+To manually run all hooks:
+```bash
+poetry run pre-commit run --all-files
+```
+
+To run only pre-push hooks:
+```bash
+poetry run pre-commit run --hook-stage push --all-files
 ```
 
 ### Database Migrations

@@ -46,3 +46,4 @@ repos:
         args: [ '--cov=authentication', '--cov-fail-under=80', '-v' ]
         pass_filenames: false
         always_run: true
+        stages: [push]
