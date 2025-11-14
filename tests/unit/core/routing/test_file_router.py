@@ -7,8 +7,8 @@ from fastapi import APIRouter
 from fastapi.routing import APIRoute
 
 from authentication.core.routing.dto import RouterMetadata
-from authentication.core.routing.extractor import Extractor
-from authentication.core.routing.file_router import FileRouter, _resolve_base_path # noqa
+from authentication.core.routing.utils.extractor import Extractor
+from authentication.core.routing.routers.file import FileRouter, _resolve_base_path # noqa
 
 
 # --- Dummy Extractors ---
@@ -98,7 +98,7 @@ def test_file_router_stats_and_errors(tmp_path):
     assert stats["modules_found"] == 0
 
 def test_register_router_merges_tags(tmp_path):
-    fr = FileRouter(str(tmp_path), extractor=DummyExtractor())
+    fr = FileRouter(str(tmp_path), tags=["file_router_tag"], extractor=DummyExtractor())
 
     router = APIRouter()
 
@@ -108,12 +108,18 @@ def test_register_router_merges_tags(tmp_path):
     @router.get("/b")  # no tags
     def b(): return {"ok": True}
 
-    fr._register_router(RouterMetadata(router=router))
+    fr.include_router(router)
 
     paths = [r.path for r in fr.routes]
     assert "/a" in paths and "/b" in paths
     for r in fr.routes:
         assert isinstance(r, APIRoute)
+        # Check that FileRouter tags are merged with route tags
+        if "/a" in r.path:
+            assert "file_router_tag" in r.tags
+            assert "tag1" in r.tags
+        elif "/b" in r.path:
+            assert "file_router_tag" in r.tags
 
 
 def test_find_project_root_with_indicator(tmp_path):

@@ -8,7 +8,7 @@ import pytest
 from fastapi import APIRouter
 
 from authentication.core.routing.dto import RouterMetadata
-from authentication.core.routing.extractor import Extractor, DefaultExtractor, MultiRouterExtractor
+from authentication.core.routing.utils.extractor import Extractor, DefaultExtractor, MultiRouterExtractor
 
 
 # Fixtures for mock modules
