@@ -1,6 +1,7 @@
 from contextlib import asynccontextmanager
 from typing import Any
 
+import arrow
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
 
@@ -48,6 +49,9 @@ async def lifespan(app: FastAPI):
     logger.info(f"Debug mode: {'enabled' if settings.debug else 'disabled'}")
 
     db_manager.initialize()
+
+    start_time = arrow.utcnow()
+    app.state.start_time = start_time
 
     yield
 
