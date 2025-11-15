@@ -3,16 +3,18 @@ from uuid import UUID
 
 from fastapi.params import Depends
 from sqlalchemy.exc import SQLAlchemyError
-from sqlmodel import SQLModel, select
+from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from .filters import Filter
 from .manager import db_manager
+from ..base import BaseDBModel
 from ..base.app import AppObject
 from ..exceptions import DatabaseError
 from ..logging import get_logger
+from ..utils import get_current_utc_datetime
 
-T = TypeVar("T", bound=SQLModel)
+T = TypeVar("T", bound=BaseDBModel)
 
 logger = get_logger(__name__)
 
@@ -225,6 +227,22 @@ class Repository[T](AppObject):
             raise DatabaseError(
                 f"Error deleting {self.model.__name__} with id {id}"
             ) from e
+
+    async def soft_delete(self, id: UUID) -> T:
+        """
+        Soft deletes an entity from the database by setting its 'is_deleted' flag to True.
+
+        :param id: The UUID of the entity to soft delete.
+        :return: The soft deleted entity instance.
+        """
+        entity: BaseDBModel = await self.get_or_raise(id)
+
+        if entity.is_deleted:
+            raise DatabaseError(
+                f"{self.model.__name__} with id {id} is already soft deleted"
+            )
+
+        return await self.update(id, deleted_at=get_current_utc_datetime())
 
     async def count(self, **filters) -> int:
         """
