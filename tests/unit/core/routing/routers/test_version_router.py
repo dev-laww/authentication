@@ -98,6 +98,7 @@ def test_is_requested_version_matches_true():
     route = router.routes[0]
     scope = {
         "type": "http",
+        "method": "GET",
         Constants.REQUESTED_VERSION_SCOPE_KEY: Version.parse("1.0.0")
     }
 
@@ -148,6 +149,7 @@ def test_is_requested_version_matches_no_route_version():
     route = router.routes[0]
     scope = {
         "type": "http",
+        "method": "GET",
         Constants.REQUESTED_VERSION_SCOPE_KEY: Version.parse("1.0.0")
     }
 
