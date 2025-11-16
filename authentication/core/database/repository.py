@@ -244,6 +244,22 @@ class Repository[T](AppObject):
 
         return await self.update(id, deleted_at=get_current_utc_datetime())
 
+    async def restore(self, id: UUID) -> T:
+        """
+        Restores a soft deleted entity by setting its 'is_deleted' flag to False.
+
+        :param id: The UUID of the entity to restore.
+        :return: The restored entity instance.
+        """
+        entity: BaseDBModel = await self.get_or_raise(id)
+
+        if not entity.is_deleted:
+            raise DatabaseError(
+                f"{self.model.__name__} with id {id} is not soft deleted"
+            )
+
+        return await self.update(id, deleted_at=None)
+
     async def count(self, **filters) -> int:
         """
         Counts the number of entities in the database, optionally filtered by provided criteria.
