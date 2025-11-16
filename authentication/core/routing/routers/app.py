@@ -353,3 +353,13 @@ class AppRouter(AppObject):
         endpoint_wrapper.__wrapped__ = method
 
         return endpoint_wrapper
+
+    def include_router(self, router: "AppRouter", **kwargs):
+        """
+        Include another AppRouter into this router.
+
+        Args:
+            router: The AppRouter instance to include.
+            **kwargs: Additional keyword arguments for inclusion.
+        """
+        self.http_router.include_router(router.http_router, **kwargs)
