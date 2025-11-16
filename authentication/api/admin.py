@@ -1,49 +1,31 @@
 from typing import Annotated
-from uuid import UUID
 
-from fastapi import Depends, APIRouter
+from fastapi import Depends
 
 from ..controllers.admin import AdminController
-from ..core.routing import AppRouter, get, post, delete
-from ..schemas import Role
-from ..schemas.common import PaginationParams
+from ..core.routing import AppRouter
+from ..core.routing.routers.crud import AppCRUDRouter
+from ..models import Role
+from ..schemas.role import UpdateRole, CreateRole
 
 
 class AdminRouter(AppRouter):
     controller: Annotated[AdminController, Depends()]
 
-    @get("/roles")
-    async def get_roles(self, pagination: PaginationParams = Depends()):
-        return await self.controller.get_roles(pagination)
 
-    @post("/roles")
-    async def create_role(self, role: Role):
-        return await self.controller.create_role(role)
-
-    @get("/roles/{role_id}")
-    async def get_role(self, role_id: UUID):
-        return await self.controller.get_role(role_id)
-
-    @delete("/roles/{role_id}")
-    async def soft_delete_role(self, role_id: UUID):
-        return await self.controller.soft_delete_role(role_id)
-
-    @delete("/roles/{role_id}/force")
-    async def delete_role(self, role_id: UUID):
-        return await self.controller.delete_role(role_id)
+async def exists_callback(role: Role, role_repo):
+    return await role_repo.exists(name=role.name)
 
 
-test_router = APIRouter(prefix="/test", tags=["Test"])
+role_router = AppCRUDRouter(
+    prefix="/roles",
+    model=Role,
+    create_schema=CreateRole,
+    update_schema=UpdateRole,
+    exists_callback=exists_callback,
+    tags=["Roles"],
+)
 
+router = AdminRouter(prefix="/admin")
 
-@test_router.get("/roles")
-def test_get_roles():
-    return {"message": "This is a test endpoint for roles."}
-
-
-@test_router.post("/roles")
-def test_create_role():
-    return {"message": "This is a test endpoint for creating a role."}
-
-
-router = AdminRouter(prefix="/admin", tags=["Admin"])
+router.include_router(role_router)
