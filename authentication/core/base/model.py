@@ -27,7 +27,7 @@ class BaseModel(PydanticBaseModel):
         include: IncEx | None = None,
         exclude: IncEx | None = None,
         context: Any | None = None,
-        by_alias: bool | None = True,
+        by_alias: bool | None = False,
         exclude_unset: bool = False,
         exclude_defaults: bool = False,
         exclude_none: bool = True,
@@ -106,11 +106,11 @@ class BaseModel(PydanticBaseModel):
 
             @model_validator(mode="after")
             def ensure_one_field_provided(self):
-                if not any(
-                    getattr(self, field_name) is not None
-                    for field_name in self.model_fields()
-                ):
-                    raise ValueError("At least one field must be provided.")
+                dump = self.model_dump(exclude_unset=True)
+
+                if not any(value is not None for value in dump.values()):
+                    raise ValueError("At least one field must be provided for update")
+
                 return self
 
         optional_fields = {
