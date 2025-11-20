@@ -269,7 +269,6 @@ class AppCRUDRouter[T](AppRouter):
             data: update_schema,
             repository: Annotated[Repository[T], Depends(get_repository(model))],
         ):
-            print(data)
             exists = await repository.exists(id=id)
 
             if self.exist_callback:
