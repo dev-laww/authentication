@@ -5,34 +5,36 @@ HTTP method and path.
 
 ### User Management
 
-- [ ] `GET  /admin/users`
-- [ ] `POST /admin/users`
-- [ ] `GET /admin/users/{id}`
-- [ ] `PUT /admin/users/{id}`
-- [ ] `DELETE /admin/users/{id}`
-- [ ] `DELETE /admin/users/{id}/hard`
-- [ ] `PATCH /admin/users/{id}/restore`
+- [ ] `GET  /users`
+- [ ] `POST /users`
+- [ ] `GET /users/{id}`
+- [ ] `PUT /users/{id}`
+- [ ] `DELETE /users/{id}`
+- [ ] `DELETE /users/{id}/hard`
+- [ ] `PATCH /users/{id}/restore`
 
 ### Role Management
 
-- [x] `GET  /admin/roles`
-- [x] `POST /admin/roles`
-- [x] `GET  /admin/roles/{id}`
-- [ ] `PUT  /admin/roles/{id}`
-- [x] `DELETE /admin/roles/{id}`
-- [x] `DELETE /admin/roles/{id}/hard`
-- [ ] `PATCH /admin/roles/{id}/restore`
-- [ ] `POST /admin/roles/{id}/permissions`
+- [x] `GET  /roles`
+- [x] `POST /roles`
+- [x] `GET  /roles/{id}`
+- [x] `PUT  /roles/{id}`
+- [x] `DELETE /roles/{id}`
+- [x] `DELETE /roles/{id}/force`
+- [x] `PATCH /roles/{id}/restore`
+- [x] `GET  /roles/{id}/permissions`
+- [x] `POST /roles/{id}/permissions`
+- [x] `DELETE /roles/{id}/permissions/{permissionId}`
 
 ### Permission Management
 
-- [ ] `GET  /admin/permissions`
-- [ ] `POST /admin/permissions`
-- [ ] `GET  /admin/permissions/{id}`
-- [ ] `PUT  /admin/permissions/{id}`
-- [ ] `DELETE /admin/permissions/{id}`
-- [ ] `DELETE /admin/permissions/{id}/hard`
-- [ ] `PATCH /admin/permissions/{id}/restore`
+- [x] `GET  /permissions`
+- [x] `POST /permissions`
+- [x] `GET  /permissions/{id}`
+- [x] `PUT  /permissions/{id}`
+- [x] `DELETE /permissions/{id}`
+- [x] `DELETE /permissions/{id}/force`
+- [x] `PATCH /permissions/{id}/restore`
 
 ### Authentication
 
@@ -71,3 +73,4 @@ HTTP method and path.
 
 - Support magic links for login
 - Implement two-factor authentication endpoints, including setup, verification, and recovery options
+- Permission checking endpoints
