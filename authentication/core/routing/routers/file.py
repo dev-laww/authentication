@@ -224,7 +224,7 @@ class FileRouter(APIRouter):
                 python_files.extend(self.base_path.glob(pattern))
 
         filtered_files: list[Path] = []
-        for file_path in python_files:
+        for file_path in sorted(python_files):
             if self._should_include_file(file_path):
                 filtered_files.append(file_path)
 
