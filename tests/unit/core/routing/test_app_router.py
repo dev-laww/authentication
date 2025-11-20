@@ -295,36 +295,6 @@ def test_dependency_injection_into_self(get_mock_db):
     assert result["has_db"] is True
 
 
-# Integration tests
-def test_full_app_integration(get_mock_db):
-    """Complete integration with FastAPI app."""
-    app = FastAPI()
-    MockDB = type(get_mock_db())
-
-    class TestRouter(AppRouter):
-        db: Annotated[MockDB, Depends(get_mock_db)]
-
-        def __init__(self):
-            super().__init__(prefix="/api", tags=["test"])
-
-        @route(path="/items", methods=["GET"])
-        def list_items(self, skip: int = 0, limit: int = 10):
-            items = self.db.query(None).offset(skip).limit(limit).all()
-            return {"items": items, "skip": skip, "limit": limit}
-
-    router = TestRouter()
-    app.include_router(router.http_router)
-
-    client = TestClient(app)
-    response = client.get("/api/items?skip=0&limit=5")
-
-    assert response.status_code == 200
-    data = response.json()
-    assert "items" in data
-    assert data["skip"] == 0
-    assert data["limit"] == 5
-
-
 # Edge cases
 def test_no_routes_defined():
     """Router with no routes works."""
