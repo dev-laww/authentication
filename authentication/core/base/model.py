@@ -3,7 +3,12 @@ import uuid
 from typing import Literal, Any, Callable, Optional, Type
 
 import arrow
-from pydantic import BaseModel as PydanticBaseModel, ConfigDict, create_model
+from pydantic import (
+    BaseModel as PydanticBaseModel,
+    ConfigDict,
+    create_model,
+    model_validator,
+)
 from pydantic.alias_generators import to_camel
 from pydantic.main import IncEx
 from sqlalchemy import Column, DateTime
@@ -93,13 +98,30 @@ class BaseModel(PydanticBaseModel):
         Returns:
             A new Pydantic model class with all fields optional.
         """
+
+        class UpdateBaseModel(cls):
+            """
+            A Pydantic model with all fields optional and a validator to ensure at least one field is provided.
+            """
+
+            @model_validator(mode="after")
+            def ensure_one_field_provided(self):
+                if not any(
+                    getattr(self, field_name) is not None
+                    for field_name in self.model_fields()
+                ):
+                    raise ValueError("At least one field must be provided.")
+                return self
+
         optional_fields = {
             field_name: (Optional[field_info.annotation], None)
             for field_name, field_info in cls.model_fields.items()
         }
 
         update_model = create_model(
-            schema_name or f"{cls.__name__}Optional", __base__=cls, **optional_fields
+            schema_name or f"{cls.__name__}Optional",
+            __base__=UpdateBaseModel,
+            **optional_fields,
         )
 
         return update_model
