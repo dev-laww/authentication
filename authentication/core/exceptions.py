@@ -111,6 +111,16 @@ class VersionNotSupportedError(AppException):
         super().__init__(message, details)
 
 
+class NoImplementationError(AppException):
+    """Exception raised for unimplemented features."""
+
+    code = "NOT_IMPLEMENTED_ERROR"
+    status_code = HTTPStatus.NOT_IMPLEMENTED
+
+    def __init__(self, message: str = "Feature not implemented", details: Any = None):
+        super().__init__(message, details)
+
+
 def setup_exception_handlers(app: FastAPI):
     """Sets up custom exception handlers for the FastAPI app."""
 
@@ -240,6 +250,7 @@ __all__ = [
     "AuthorizationError",
     "ValidationError",
     "NotFoundError",
+    "NoImplementationError",
     "DatabaseError",
     "ExternalServiceError",
     "ConflictError",
