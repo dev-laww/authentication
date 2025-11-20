@@ -1,6 +1,5 @@
-from typing import Optional
-
-from pydantic import model_validator
+from typing import Optional, List
+from uuid import UUID
 
 from ..core.base import BaseModel
 
@@ -11,17 +10,8 @@ class CreateRole(BaseModel):
     is_active: bool = True
 
 
-# TODO: Create a update schema factory that enforces at least one field to be set
-class UpdateRole(BaseModel):
-    name: Optional[str] = None
-    description: Optional[str] = None
-    is_active: Optional[bool] = None
+UpdateRole = CreateRole.make_fields_optional("UpdateRole")
 
-    @model_validator(mode="after")
-    def at_least_one_field(self):
-        if not any(
-            value is not None for value in self.model_dump(exclude_unset=True).values()
-        ):
-            raise ValueError("At least one field must be provided for update")
 
-        return self
+class UpdatePermissions(BaseModel):
+    permission_ids: List[UUID]
