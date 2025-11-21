@@ -2,6 +2,7 @@ import datetime
 from typing import TYPE_CHECKING, Optional
 from uuid import UUID
 
+from sqlalchemy import Column, DateTime
 from sqlmodel import Field, Relationship
 
 from ..core.base import BaseDBModel
@@ -15,7 +16,7 @@ class Session(BaseDBModel, table=True):
 
     user_id: UUID = Field(foreign_key="users.id", index=True)
     token: str
-    expires_at: datetime.datetime
+    expires_at: datetime.datetime = Field(sa_column=Column(DateTime(timezone=True)))
     ip_address: Optional[str]
     user_agent: Optional[str]
 
