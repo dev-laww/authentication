@@ -2,6 +2,7 @@ from pathlib import Path
 from typing import Dict, Union, List
 
 import resend
+from resend import exceptions
 from jinja2 import Environment, FileSystemLoader
 
 from ..core.base import AppObject
@@ -28,7 +29,7 @@ class EmailService(AppObject):
             params = self.get_params(to_email, subject, html_content)
             email = resend.Emails.send(params)
             return email
-        except resend.exceptions.ResendError as e:
+        except exceptions.ResendError as e:
             raise AppException(f"Failed to send email: {e}") from e
 
     @staticmethod
