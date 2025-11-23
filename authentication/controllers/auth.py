@@ -114,6 +114,28 @@ class AuthController(Controller):
             html_content=html,
         )
 
+        if data.send_verification_email:
+            verification = self._create_verification_token(
+                user.id,
+                VerificationIdentifier.EMAIL_VERIFICATION.value,
+                expires_hours=self.EMAIL_VERIFICATION_EXPIRES_HOURS,
+            )
+            await self.verification_repository.create(verification)
+
+            context = {
+                **self._get_base_email_context(),
+                "verification_url": f"{self.BASE_URL}/verify-email?token={verification.value}",
+            }
+
+            html = self.email_service.render_template(
+                "email-verification.html", context
+            )
+            self.email_service.send_email(
+                to_email=str(user.email),
+                subject="Verify your email address",
+                html_content=html,
+            )
+
         return AppResponse.created(
             message="User registered successfully",
             data=AuthResponse(

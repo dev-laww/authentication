@@ -25,6 +25,7 @@ class PasswordValidate(BaseModel):
 
 class EmailRegister(PasswordValidate):
     email: EmailStr
+    send_verification_email: Optional[bool] = True
 
 
 class AuthUser(BaseModel):
