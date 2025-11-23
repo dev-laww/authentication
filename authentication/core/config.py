@@ -70,6 +70,10 @@ class ResendSettings(BaseSettings):
 
 
 class Settings(BaseSettings):
+    database: DatabaseSettings = DatabaseSettings()
+    app: AppSettings = AppSettings()
+    resend: ResendSettings = ResendSettings()
+
     environment: Environment = Field(
         default=Environment.DEVELOPMENT, description="The application environment"
     )
@@ -101,17 +105,9 @@ class Settings(BaseSettings):
         return self.environment == Environment.DEVELOPMENT
 
 
-class Config:
-    def __init__(self):
-        self.database = DatabaseSettings()
-        self.resend = ResendSettings()
-        self.app = AppSettings()
-        self.settings = Settings()
-
-
 @lru_cache
-def get_config() -> Config:
-    return Config()
+def get_settings() -> Settings:
+    return Settings()
 
 
-settings = get_config()
+settings = get_settings()

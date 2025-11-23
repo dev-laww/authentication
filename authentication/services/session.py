@@ -65,7 +65,7 @@ class SessionService(AppObject):
         if additional_claims:
             payload.update(additional_claims)
 
-        token = jwt.encode(payload, settings.jwt_secret, algorithm="HS256")
+        token = jwt.encode(payload, settings.app.jwt_secret, algorithm="HS256")
 
         return token
 
@@ -75,7 +75,7 @@ class SessionService(AppObject):
         Returns the payload if valid, None otherwise.
         """
         try:
-            payload = jwt.decode(token, settings.jwt_secret, algorithms=["HS256"])
+            payload = jwt.decode(token, settings.app.jwt_secret, algorithms=["HS256"])
             return payload
         except JWTError:
             return None
