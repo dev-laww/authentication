@@ -62,12 +62,12 @@ async def lifespan(app: FastAPI):
 
 
 def create_app():
-    should_add_docs = settings.is_development and settings.enable_api_docs
+    should_add_docs = settings.app.is_development and settings.enable_api_docs
 
     app = FastAPI(
-        title=settings.app_name,
-        description=settings.app_description,
-        version=settings.app_version,
+        title=settings.app.name,
+        description=settings.app.description,
+        version=settings.app.version,
         debug=settings.debug,
         default_response_class=JSONResponse,
         docs_url=settings.docs_url if should_add_docs else None,

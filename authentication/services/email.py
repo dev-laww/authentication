@@ -10,7 +10,7 @@ from ..core.config import settings
 
 class EmailService(AppObject):
     def __init__(self):
-        resend.api_key = settings.resend_api_key
+        resend.api_key = settings.resend.api_key
         template_path = Path(__file__).parent.parent.parent / "templates"
         self.env = Environment(
             loader=FileSystemLoader(str(template_path)), autoescape=True
@@ -35,7 +35,7 @@ class EmailService(AppObject):
         to_email: Union[str, List[str]], subject: str, html_content: str
     ) -> resend.Emails.SendParams:
         return {
-            "from": settings.resend_email_from,
+            "from": settings.resend.email_from,
             "to": to_email,
             "subject": subject,
             "html": html_content,

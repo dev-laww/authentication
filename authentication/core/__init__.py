@@ -1,4 +1,4 @@
-from .config import get_settings, settings
+from .config import get_config, settings
 from .constants import Constants
 
-__all__ = ["settings", "get_settings", "Constants"]
+__all__ = ["settings", "get_config", "Constants"]

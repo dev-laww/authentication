@@ -3,7 +3,7 @@ from logging import getLogger, Logger
 from .config import settings
 
 uv_logger = getLogger("uvicorn")
-logger = uv_logger.getChild(settings.app_name)
+logger = uv_logger.getChild(settings.app.name)
 
 
 def get_logger(module_name: str) -> Logger:

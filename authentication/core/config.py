@@ -11,44 +11,69 @@ class Environment(Enum):
     TESTING = "testing"
 
 
-class Settings(BaseSettings):
-    environment: Environment = Field(
-        default=Environment.DEVELOPMENT, description="The application environment"
+class DatabaseSettings(BaseSettings):
+    url: str = Field(..., description="Database connection URL")
+    pool_size: int = Field(default=10, description="Database connection pool size")
+    max_overflow: int = Field(
+        default=20, description="Maximum overflow size for the database connection pool"
     )
-    debug: bool = Field(default=False, description="Enable or disable debug mode")
+    pool_timeout: int = Field(
+        default=30,
+        description="Timeout for acquiring a database connection from the pool in seconds",
+    )
 
-    app_name: str = Field(
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_prefix="DATABASE_",
+        env_ignore_empty=True,
+        env_file_encoding="utf-8",
+        extra="ignore",
+    )
+
+
+class AppSettings(BaseSettings):
+    name: str = Field(
         default="Authentication Service", description="The name of the application"
     )
-    app_version: str = Field(
-        default="1.0.0", description="The version of the application"
-    )
-    app_description: str = Field(
+    version: str = Field(default="1.0.0", description="The version of the application")
+    description: str = Field(
         default="Service for user authentication and management",
         description="The description of the application",
     )
     default_api_version: str = Field(
         default="latest", description="The default API version for the application"
     )
-
-    database_url: str = Field(..., description="Database connection URL")
-    database_pool_size: int = Field(
-        default=10, description="Database connection pool size"
-    )
-    database_max_overflow: int = Field(
-        default=20, description="Maximum overflow size for the database connection pool"
-    )
-    database_pool_timeout: int = Field(
-        default=30,
-        description="Timeout for acquiring a database connection from the pool in seconds",
-    )
-
     jwt_secret: str = Field(..., description="Secret key used for JWT token generation")
 
-    resend_api_key: str = Field(..., description="API key for Resend email service")
-    resend_email_from: str = Field(
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_prefix="APP_",
+        env_ignore_empty=True,
+        env_file_encoding="utf-8",
+        extra="ignore",
+    )
+
+
+class ResendSettings(BaseSettings):
+    api_key: str = Field(..., description="API key for Resend email service")
+    email_from: str = Field(
         description="Default 'from' email address for sending emails",
     )
+
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_prefix="RESEND_",
+        env_ignore_empty=True,
+        env_file_encoding="utf-8",
+        extra="ignore",
+    )
+
+
+class Settings(BaseSettings):
+    environment: Environment = Field(
+        default=Environment.DEVELOPMENT, description="The application environment"
+    )
+    debug: bool = Field(default=False, description="Enable or disable debug mode")
 
     enable_api_docs: bool = Field(
         default=True, description="Enable or disable API documentation endpoints"
@@ -61,7 +86,10 @@ class Settings(BaseSettings):
     )
 
     model_config = SettingsConfigDict(
-        env_file=".env", env_ignore_empty=True, env_file_encoding="utf-8"
+        env_file=".env",
+        env_ignore_empty=True,
+        env_file_encoding="utf-8",
+        extra="ignore",
     )
 
     @property
@@ -73,9 +101,17 @@ class Settings(BaseSettings):
         return self.environment == Environment.DEVELOPMENT
 
 
+class Config:
+    def __init__(self):
+        self.database = DatabaseSettings()
+        self.resend = ResendSettings()
+        self.app = AppSettings()
+        self.settings = Settings()
+
+
 @lru_cache
-def get_settings() -> Settings:
-    return Settings()  # noqa
+def get_config() -> Config:
+    return Config()
 
 
-settings = get_settings()
+settings = get_config()

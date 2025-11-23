@@ -31,7 +31,7 @@ target_metadata = SQLModel.metadata
 # can be acquired:
 # my_important_option = config.get_main_option("my_important_option")
 # ... etc.
-database_url = settings.database_url
+database_url = settings.database.url
 
 
 def run_migrations_offline() -> None:

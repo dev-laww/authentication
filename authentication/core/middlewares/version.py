@@ -126,8 +126,8 @@ def setup_version_middleware(app: FastAPI, vendor_prefix: str) -> None:
 
     registry.default_version = (
         registry.latest_version
-        if settings.default_api_version == "latest"
-        else parse_version(settings.default_api_version)
+        if settings.app.default_api_version == "latest"
+        else parse_version(settings.app.default_api_version)
     )
 
     logger.info("API Versioning Middleware configured")
