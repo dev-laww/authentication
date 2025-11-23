@@ -5,6 +5,7 @@ from .role_permission import RolePermission
 from .session import Session
 from .user import User
 from .user_role import UserRole
+from .verification import Verification
 
 __all__ = [
     "Account",
@@ -14,4 +15,5 @@ __all__ = [
     "Session",
     "User",
     "UserRole",
+    "Verification",
 ]
