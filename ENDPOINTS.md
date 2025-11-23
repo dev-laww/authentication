@@ -70,6 +70,9 @@ HTTP method and path.
 
 ### TODO:
 
+- Add support for callback urls (e.g., after verification, password reset), also include error callbacks
+- Implement social login endpoints for various providers (e.g., Google, Facebook, Twitter)
 - Support magic links for login
 - Implement two-factor authentication endpoints, including setup, verification, and recovery options
 - Permission checking endpoints
+- Make things configurable especially for email sending and social logins
