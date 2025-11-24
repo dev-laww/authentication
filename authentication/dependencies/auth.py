@@ -25,24 +25,22 @@ class Authentication:
 
     def __init__(
         self,
-        user_repository: Annotated[Repository[User], Depends(get_repository(User))],
-        session_service: Annotated[SessionService, Depends()],
         priority: Priority = Priority.COOKIE_FIRST,
         auth_type: Type = Type.BOTH,
         strict: bool = True,
     ):
-        self.user_repository = user_repository
-        self.session_service = session_service
         self.priority = priority
         self.type = auth_type
         self.strict = strict
 
     async def __call__(
         self,
+        user_repository: Annotated[Repository[User], Depends(get_repository(User))],
+        session_service: Annotated[SessionService, Depends()],
         header_token: Annotated[Optional[str], Depends(oauth2_scheme)],
-        cookie_token: Annotated[Optional[str], Cookie(alias="session_token")],
+        session_token: Annotated[Optional[str], Cookie()] = None,
     ) -> Optional[User]:
-        token, token_type = self.__get_token(header_token, cookie_token)
+        token, token_type = self.__get_token(header_token, session_token)
 
         if not token:
             if self.strict:
@@ -52,14 +50,14 @@ class Authentication:
             return None
 
         if token_type == self.Type.HEADER:
-            payload = self.session_service.verify_jwt_token(token)
+            payload = session_service.verify_jwt_token(token)
 
             if not payload and self.strict:
                 raise AuthenticationError("Invalid or expired JWT token")
 
-            return await self.user_repository.get_first(id=payload.sub)
+            return await user_repository.get_first(id=payload.sub)
 
-        session = await self.session_service.get_session_by_token(token)
+        session = await session_service.get_session_by_token(token)
 
         if not session and self.strict:
             raise AuthenticationError("Invalid or expired session token")
@@ -88,3 +86,19 @@ class Authentication:
             if header_token
             else (cookie_token, self.Type.COOKIE)
         )
+
+
+def permit(name: str, authentication: Optional[Authentication] = None):
+    auth = authentication or Authentication()
+
+    async def permission_dependency(user: Optional[User] = Depends(auth)) -> User:
+        print(user)
+        if not user:
+            raise AuthenticationError("Authentication required")
+
+        if not user.has_permission(name):
+            raise AuthenticationError("Insufficient permissions")
+
+        return user
+
+    return permission_dependency
