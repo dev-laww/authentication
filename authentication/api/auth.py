@@ -1,9 +1,11 @@
 from typing import Annotated
 
 from fastapi import Depends, Request
+from fastapi.security import OAuth2PasswordRequestForm
 from starlette.responses import Response
 
 from ..controllers.auth import AuthController
+from ..core import settings
 from ..core.routing import AppRouter, post, get
 from ..schemas.auth import (
     EmailLogin,
@@ -54,6 +56,21 @@ class AuthRouter(AppRouter):
     @post("/reset")
     async def reset_password(self, data: ResetPassword):
         return await self.controller.reset_password(data)
+
+    if settings.is_development:
+
+        @post("/token")
+        async def generate_token(
+            self,
+            request: Request,
+            response: Response,
+            data: OAuth2PasswordRequestForm = Depends(),
+        ):
+            data = EmailLogin.model_validate(
+                {"email": data.username, "password": data.password}
+            )
+
+            return await self.controller.login(data, request, response)
 
 
 router = AuthRouter(prefix="/auth", tags=["Authentication"])
