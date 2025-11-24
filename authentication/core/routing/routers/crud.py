@@ -17,7 +17,7 @@ from uuid import UUID
 from fastapi import params
 from fastapi.datastructures import Default
 from fastapi.params import Depends
-from fastapi.responses import JSONResponse, Response
+from fastapi.responses import Response
 from starlette.routing import BaseRoute
 from starlette.types import ASGIApp, Lifespan
 
@@ -36,7 +36,7 @@ from ....schemas import (
 )  # TODO: Move to core.schemas.common
 
 T = TypeVar("T", bound=BaseDBModel)
-
+Dependencies = Optional[Sequence[params.Depends]]
 
 # TODO: Create a generic CRUD controller that can be used with the router
 
@@ -48,7 +48,7 @@ class AppCRUDRouter[T](AppRouter):
         prefix: str = "",
         tags: Optional[List[Union[str, Enum]]] = None,
         dependencies: Optional[Sequence[params.Depends]] = None,
-        default_response_class: Type[Response] = Default(JSONResponse),
+        default_response_class: Type[Response] = Default(AppResponse),
         responses: Optional[Dict[Union[int, str], Dict[str, Any]]] = None,
         callbacks: Optional[List[BaseRoute]] = None,
         routes: Optional[List[BaseRoute]] = None,
@@ -67,6 +67,13 @@ class AppCRUDRouter[T](AppRouter):
         include_update: bool = True,
         include_create: bool = True,
         include_delete: bool = True,
+        get_all_dependencies: Optional[Dependencies] = None,
+        get_one_dependencies: Optional[Dependencies] = None,
+        create_dependencies: Optional[Dependencies] = None,
+        update_dependencies: Optional[Dependencies] = None,
+        delete_dependencies: Optional[Dependencies] = None,
+        soft_delete_dependencies: Optional[Dependencies] = None,
+        restore_dependencies: Optional[Dependencies] = None,
         exists_callback: Optional[
             Callable[[Any, Repository[T]], Awaitable[bool]]
         ] = None,
@@ -99,6 +106,13 @@ class AppCRUDRouter[T](AppRouter):
         self.include_create = include_create
         self.include_delete = include_delete
         self.exist_callback = exists_callback
+        self.get_all_dependencies = get_all_dependencies
+        self.get_one_dependencies = get_one_dependencies
+        self.create_dependencies = create_dependencies
+        self.update_dependencies = update_dependencies
+        self.delete_dependencies = delete_dependencies
+        self.soft_delete_dependencies = soft_delete_dependencies
+        self.restore_dependencies = restore_dependencies
 
         if include_create and not create_schema:
             raise ValueError("create_schema must be provided if include_create is True")
@@ -113,6 +127,7 @@ class AppCRUDRouter[T](AppRouter):
             "",
             self.get_all,
             methods=["GET"],
+            dependencies=self.get_all_dependencies,
             name=f"get_all_{pluralize(self.model_name)}",
         )
 
@@ -120,6 +135,7 @@ class AppCRUDRouter[T](AppRouter):
             "/{id}",
             self.get_one,
             methods=["GET"],
+            dependencies=self.get_one_dependencies,
             name=f"get_{self.model_name}",
         )
 
@@ -128,6 +144,7 @@ class AppCRUDRouter[T](AppRouter):
                 "",
                 self.create,
                 methods=["POST"],
+                dependencies=self.create_dependencies,
                 name=f"create_{self.model_name}",
             )
 
@@ -136,6 +153,7 @@ class AppCRUDRouter[T](AppRouter):
                 "/{id}",
                 self.update,
                 methods=["PATCH"],
+                dependencies=self.update_dependencies,
                 name=f"update_{self.model_name}",
             )
 
@@ -144,6 +162,7 @@ class AppCRUDRouter[T](AppRouter):
                 "/{id}",
                 self.soft_delete,
                 methods=["DELETE"],
+                dependencies=self.soft_delete_dependencies,
                 name=f"soft_delete_{self.model_name}",
             )
 
@@ -151,6 +170,7 @@ class AppCRUDRouter[T](AppRouter):
                 "/{id}/restore",
                 self.restore,
                 methods=["PATCH"],
+                dependencies=self.restore_dependencies,
                 name=f"restore_{self.model_name}",
             )
 
@@ -158,6 +178,7 @@ class AppCRUDRouter[T](AppRouter):
                 "/{id}/force",
                 self.delete,
                 methods=["DELETE"],
+                dependencies=self.delete_dependencies,
                 name=f"delete_{self.model_name}",
             )
 
