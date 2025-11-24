@@ -37,3 +37,15 @@ class User(BaseDBModel, table=True):
     verifications: List["Verification"] = Relationship(
         back_populates="user", sa_relationship_kwargs={"lazy": "selectin"}
     )
+
+    def has_permission(self, permission_name: str) -> bool:
+        """
+        Check if the user has a specific permission by name.
+        """
+        for role in self.roles:
+            for permission in role.permissions:
+                if permission.name != permission_name:
+                    continue
+
+                return True
+        return False

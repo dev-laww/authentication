@@ -2,6 +2,7 @@ import datetime
 from typing import TYPE_CHECKING, Optional
 from uuid import UUID
 
+import arrow
 from sqlalchemy import Column, DateTime
 from sqlmodel import Field, Relationship
 
@@ -26,4 +27,4 @@ class Session(BaseDBModel, table=True):
 
     @property
     def is_expired(self) -> bool:
-        return datetime.datetime.utcnow() > self.expires_at
+        return arrow.utcnow().datetime > self.expires_at
