@@ -92,7 +92,6 @@ def permit(name: str, authentication: Optional[Authentication] = None):
     auth = authentication or Authentication()
 
     async def permission_dependency(user: Optional[User] = Depends(auth)) -> User:
-        print(user)
         if not user:
             raise AuthenticationError("Authentication required")
 
