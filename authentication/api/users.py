@@ -1,12 +1,17 @@
+from typing import Annotated
 from uuid import UUID
 
-from ..core.exceptions import NoImplementationError
-from ..core.routing import post, get, delete
+from fastapi.params import Depends
+
+from ..controllers.user import UserController
+from ..core.routing import post, get, delete, patch
 from ..core.routing.routers import AppCRUDRouter
 from ..models import User
 
 
 class UsersRouter(AppCRUDRouter[User]):
+    controller: Annotated[UserController, Depends()]
+
     def __init__(self):
         super().__init__(
             prefix="/users",
@@ -18,16 +23,32 @@ class UsersRouter(AppCRUDRouter[User]):
         )
 
     @get("/{id}/roles")
-    def get_roles(self, id: UUID):
-        raise NoImplementationError("Get user roles not implemented")
+    async def get_roles(self, id: UUID):
+        return await self.controller.get_roles(id)
 
     @post("/{id}/roles/{role_id}")
-    def add_role(self, id: UUID, role_id: UUID):
-        raise NoImplementationError("Add role to user not implemented")
+    async def assign_role(self, id: UUID, role_id: UUID):
+        return await self.controller.assign_role(id, role_id)
 
     @delete("/{id}/roles/{role_id}")
-    def remove_role(self, id: UUID, role_id: UUID):
-        raise NoImplementationError("Remove role from user not implemented")
+    async def unassign_role(self, id: UUID, role_id: UUID):
+        return await self.controller.unassign_role(id, role_id)
+
+    @get("/{id}/permissions")
+    async def get_permissions(self, id: UUID):
+        return await self.controller.get_permissions(id)
+
+    @post("/{id}/permissions/{permission_id}")
+    async def assign_permission(self, id: UUID, permission_id: UUID):
+        return await self.controller.assign_permission(id, permission_id)
+
+    @delete("/{id}/permissions/{permission_id}")
+    async def unassign_permission(self, id: UUID, permission_id: UUID):
+        return await self.controller.unassign_permission(id, permission_id)
+
+    @patch("/{id}/permissions/{permission_id}/deny")
+    async def deny_permission(self, id: UUID, permission_id: UUID):
+        return await self.controller.deny_permission(id, permission_id)
 
 
 router = UsersRouter()

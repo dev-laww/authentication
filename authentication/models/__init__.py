@@ -6,6 +6,7 @@ from .role import Role
 from .role_permission import RolePermission
 from .session import Session
 from .user import User
+from .user_permission import UserPermission
 from .user_role import UserRole
 from .verification import Verification
 
@@ -18,6 +19,7 @@ __all__ = [
     "RolePermission",
     "Session",
     "User",
+    "UserPermission",
     "UserRole",
     "Verification",
     "metadata",

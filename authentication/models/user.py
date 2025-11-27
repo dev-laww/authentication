@@ -4,12 +4,14 @@ from typing import Optional, TYPE_CHECKING, List
 from pydantic import EmailStr
 from sqlmodel import Field, Relationship
 
+from .user_permission import UserPermission
 from .user_role import UserRole
 from ..core.base import BaseDBModel
 
 if TYPE_CHECKING:
-    from .role import Role
     from .account import Account
+    from .permission import Permission
+    from .role import Role
     from .session import Session
     from .verification import Verification
 
@@ -39,11 +41,20 @@ class User(BaseDBModel, table=True):
         back_populates="user", sa_relationship_kwargs={"lazy": "selectin"}
     )
 
-    @cached_property
-    def permission_names(self):
-        return {
-            permission.name for role in self.roles for permission in role.permissions
-        }
+    permissions: List["Permission"] = Relationship(
+        back_populates="users",
+        link_model=UserPermission,
+        sa_relationship_kwargs={
+            "lazy": "selectin",
+            "primaryjoin": "User.id == UserPermission.user_id",
+            "secondaryjoin": "and_(UserPermission.permission_id == Permission.id, UserPermission.grant_type != 'deny')",
+            "viewonly": True,
+        },
+    )
 
-    def has_permission(self, permission_name: str) -> bool:
-        return permission_name in self.permission_names
+    @cached_property
+    def _permission_names(self):
+        return {permission.name for permission in self.permissions}
+
+    def has_permission(self, name: str) -> bool:
+        return name in self._permission_names
