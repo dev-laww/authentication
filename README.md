@@ -16,6 +16,11 @@ architecture pattern.
 - **Database Migrations** - Alembic integration
 - **Testing** - Pytest setup with async support
 
+## CLI Usage
+
+This repository bundles a CLI for managing database workflows and future tooling.
+See the [CLI Guide](CLI.md) for detailed usage instructions and command reference.
+
 ## Project Structure
 
 ```
